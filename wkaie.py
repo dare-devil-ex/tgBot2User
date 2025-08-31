@@ -1,34 +1,36 @@
 # Author: @dare_devil_ex
 
 import json
-from telebot import TeleBot as tb
+from telebot import TeleBot, types
 
 with open("config.json", "r") as f:
     config = json.load(f)
 token = config["token"]
 _chatID = config["id"]
 _from = config["admin"]
-bot = tb(token)
+bot = TeleBot(token)
+
+content_types=[
+    'text', 'photo', 'video', 'voice', 'audio', 'document',
+    'location', 'contact', 'animation', 'video_note',
+    'venue', 'poll', 'dice', 'sticker'
+]
 
 class Wkaie:
     @bot.message_handler(commands=['start'])
     def send_welcome(message):
-        bot.reply_to(message, f"welcome to place {message.chat}")
+        bot.reply_to(message, f"welcome to my place {message.chat}")
         
-    @bot.message_handler(content_types=[
-        'text', 'photo', 'video', 'voice', 'audio', 'document',
-        'location', 'contact', 'animation', 'video_note',
-        'venue', 'poll', 'dice', 'sticker'
-    ])
+    @bot.message_handler(content_types)
     def forward_all(msg):
-        print(f"Received: {msg.content_type}")
+        print(f"Received: {msg.content_type} from {msg.chat.first_name}")
         try:
             if msg.content_type == 'document':
-                bot.send_message(_from, f"{msg.document.file_id}")
+                bot.send_message(_from, f"Document ID: {msg.document.file_id}")
+                
             elif msg.content_type == 'photo':
-        
                 file_id = msg.photo[-1].file_id
-                bot.send_message(_from, f"Photo ID: {file_id}")
+                bot.send_photo(_from, f"{file_id}", caption=f"Photo ID: {file_id}")
 
             elif msg.content_type == 'video':
                 bot.send_message(_from, f"Video ID: {msg.video.file_id}")
@@ -59,7 +61,7 @@ class Wkaie:
                 
             else:
                 bot.forward_message(_from, msg.chat.id, msg.message_id)
-                bot.forward_message(_from, _chatID, msg.message_id)
+                
         except Exception as e:
             print("Error forwarding:", e)
     
